@@ -4,6 +4,12 @@
 
 This guide is focused on **ongoing maintenance and support effort**, not the initial implementation effort, for a Thales CipherTrust REST Data Protection (CRDP) tokenization program.
 
+It is also important that customers run the **Application Code Sensitive Data Scanner Assessment Tool** to validate what they believe the true scope of the project is before finalizing level-of-effort assumptions.
+
+In many modern multi-tier environments, a large number of applications may reference a field such as `account_id`, `customer_id`, or other sensitive elements in front-end code. But those front ends often only collect, display, or transmit the data to back-end services. The actual protection or reveal logic is usually implemented in the back-end services, integration layers, or database-access layers that own the transformation path.
+
+For example, a customer may initially believe that `250` applications are in scope because all of them reference a sensitive field. After running the assessment tool, the customer may determine that only `30` back-end applications are actually providing the endpoints, business logic, or data-access paths that need to be modified. That can reduce the practical level of effort significantly.
+
 It is intended to help frame support estimates for a large environment such as:
 
 - approximately `250` applications
@@ -40,28 +46,42 @@ At steady state, the support model is typically a combination of:
 - performance and capacity management
 - DBA or data engineering support for batch and data lifecycle activities
 
+**Total roles that may be involved with implementation and steady-state support include application developers, DBAs, cloud architects, Thales security administrators, DevOps or SRE resources supporting Kubernetes and AKS, Databricks specialists, integration engineers, performance engineers, service-management teams, and customer application owners.**
+
+In practical terms, "across platform, application, and security support" can include:
+
+- application developers supporting back-end services, wrappers, and release validation
+- DBAs supporting protected tables, schemas, performance review, and data-load planning
+- cloud architects defining AKS topology, network patterns, and scaling boundaries
+- Thales security administrators managing policies, user sets, access control, and audit readiness
+- DevOps or SRE teams supporting AKS operations, observability, certificates, secrets, and autoscaling
+- Databricks specialists supporting UDF-based transformation and downstream analytics flows
+- integration engineers supporting Kafka, batch, Azure Functions, and service-to-service patterns
+- performance or capacity engineers reviewing CRDP and AKS metrics and tuning thresholds
+- service-management or release teams coordinating production changes, incidents, and escalation paths
+
 For a large estate like this, a practical planning view is:
 
 - **Low-complexity steady state**
-  - `3` to `5` FTE equivalent across platform, application, and security support
+  - `3` to `5` FTE equivalent across the roles listed above
 - **Moderate-complexity steady state**
-  - `5` to `8` FTE equivalent
+  - `5` to `8` FTE equivalent across the roles listed above
 - **High-complexity steady state**
-  - `8` to `12+` FTE equivalent
+  - `7` to `10+` FTE equivalent across the roles listed above
 
 These are blended support ranges and assume a production estate, not a temporary implementation surge.
 
-## Key Questions To Ask The Customer
+## Factors Impacting Level Of Effort
 
 ### Application Ownership And Readiness
 
-- How many of the `250` applications are expected to be onboarded to CRDP in the first year versus later phases?
+- What is the plan for the rollout? How many applications per quarter will be onboarded?
 - For each application, who owns support after go-live?
 - What percentage of the applications are supported by internal staff versus contractors or service providers?
-- How much technology transfer exists for those applications?
-- Which applications receive frequent changes and which are largely static?
-- Which applications have complete runbooks, support contacts, and escalation paths?
-- Which applications already have automated testing and release automation?
+- For apps that have been implemented by contractors, how much technology transfer exists for those applications?
+- What % of applications receive frequent changes and which are largely static?
+- Which % of applications have complete runbooks, support contacts, and escalation paths?
+- Which % of applications already have automated testing and release automation?
 
 ### Operational Criticality
 
@@ -225,11 +245,11 @@ Typical metrics:
 - result sets usually below `100` rows
 - no hard real-time latency requirement
 
-Steady-state support estimate:
+Steady-state incremental support estimate for tokenization capability:
 
-- application support: `4` to `8` hours per month
-- platform and security support allocation: `2` to `6` hours per month
-- total blended support: `6` to `14` hours per month per application
+- additional application support required to support tokenization capability: `1` hour per month if any
+- platform and security support allocation: `1` to `3` hours per month
+- total blended incremental support: `2` to `4` hours per month per application
 
 ### Medium Application
 
@@ -252,12 +272,12 @@ Typical metrics:
 - moderate transaction volume
 - moderate reveal result set sizes
 
-Steady-state support estimate:
+Steady-state incremental support estimate for tokenization capability:
 
-- application support: `10` to `24` hours per month
-- platform and security support allocation: `6` to `14` hours per month
-- data and batch support allocation: `4` to `12` hours per month
-- total blended support: `20` to `50` hours per month per application group
+- additional application support required to support tokenization capability: `2` hours per month
+- platform and security support allocation: `3` to `6` hours per month
+- data and batch support allocation: `2` to `4` hours per month
+- total blended incremental support: `7` to `12` hours per month per application group
 
 ### Complex Application
 
@@ -281,15 +301,15 @@ Typical metrics:
 - large result sets such as analytics returning `5000` rows
 - strong performance sensitivity
 
-Steady-state support estimate:
+Steady-state incremental support estimate for tokenization capability:
 
-- application support: `30` to `80` hours per month
-- platform and security support allocation: `12` to `30` hours per month
-- data and batch support allocation: `8` to `24` hours per month
-- performance and incident analysis allocation: `8` to `20` hours per month
-- total blended support: `58` to `154` hours per month per complex application group
+- additional application support required to support tokenization capability: `4` hours per month
+- platform and security support allocation: `6` to `10` hours per month
+- data and batch support allocation: `4` to `8` hours per month
+- performance and incident analysis allocation: `4` to `8` hours per month
+- total blended incremental support: `18` to `30` hours per month per complex application group
 
-## Applying The Model To The Provided Use Cases
+## Applying The Model To Sample Use Cases
 
 ### 1. Kafka Use Case
 
@@ -539,7 +559,15 @@ A practical early grouping could be:
 
 ## Role-Based Activities And Monthly Support Estimates
 
-These are **steady-state monthly support ranges** for the running environment, assuming production support after the initial rollout wave.
+These are **steady-state monthly incremental support ranges for the tokenization capability**, not the total application support effort. They assume applications are already live after the initial rollout wave and focus on the extra work introduced by CRDP, AKS, CipherTrust policy administration, monitoring, and related operational support.
+
+These ranges also assume a reasonably efficient operating model:
+
+- AKS is managed using shared platform practices rather than one-off cluster administration
+- Prometheus and dashboarding automate most routine health checks
+- alerting is tuned so teams are not chasing excessive noise
+- CRDP policies, user sets, and common operational tasks are standardized
+- reusable wrappers and common deployment patterns reduce repeated application troubleshooting
 
 ### DevOps Or SRE
 
@@ -554,12 +582,12 @@ Activities:
 
 Estimated monthly effort:
 
-- base for first `2` clusters: `80` to `140` hours per month
-- add `20` to `35` hours per month for each additional cluster
+- base for first `2` clusters: `24` to `40` hours per month
+- add `6` to `10` hours per month for each additional cluster
 
 For `5` clusters, a practical range is:
 
-- `140` to `245` hours per month
+- `42` to `70` hours per month
 
 ### CipherTrust Platform And Security Administration
 
@@ -574,7 +602,7 @@ Activities:
 
 Estimated monthly effort:
 
-- `40` to `100` hours per month
+- `4` to `12` hours per month
 
 ### Application Support And Integration Engineering
 
@@ -588,9 +616,9 @@ Activities:
 
 Estimated monthly effort:
 
-- simple active applications: `4` to `8` hours each per month
-- medium active applications: `10` to `24` hours each per month
-- complex active applications: `30` to `80` hours each per month
+- simple active applications: `1` hour each per month if any
+- medium active applications: `2` to `6` hours each per month
+- complex active applications: `4` to `12` hours each per month
 
 For planning at portfolio level, group applications by complexity rather than multiplying `250` by one flat number.
 
@@ -606,7 +634,7 @@ Activities:
 
 Estimated monthly effort:
 
-- `40` to `120` hours per month
+- `8` to `24` hours per month
 
 ### Performance And Capacity Engineering
 
@@ -620,7 +648,7 @@ Activities:
 
 Estimated monthly effort:
 
-- `20` to `60` hours per month
+- `4` to `12` hours per month
 
 ### Service Management, Release, And On-Call Coordination
 
@@ -634,7 +662,7 @@ Activities:
 
 Estimated monthly effort:
 
-- `20` to `60` hours per month
+- `4` to `12` hours per month
 
 ## Suggested Estimating Method
 
