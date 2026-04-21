@@ -1,0 +1,39 @@
+{
+  "custom_patterns": [
+    {
+      "name": "account-number",
+      "category": "CUSTOM_ACCOUNT_NUMBER",
+      "keywords": [
+        "account_number",
+        "account_num",
+        "account_nbr",
+        "acct_number",
+        "acct_num",
+        "acct_nbr",
+        "accnt_nbr",
+        "customer_account_number"
+      ],
+      "impact_hint": "Customer-defined account number field"
+    },
+    {
+      "name": "household-id",
+      "category": "CUSTOM_HOUSEHOLD_ID",
+      "keywords": [
+        "household_id",
+        "household_identifier",
+        "family_household_id",
+        "household_nbr",
+        "household_num",
+        "hh_id",
+        "hh_number"
+      ],
+      "impact_hint": "Customer-defined household identifier"
+    },
+    {
+      "name": "salary",
+      "category": "CUSTOM_SALARY",
+      "keywords": ["salary", "annual_salary", "base_salary", "compensation_amount"],
+      "impact_hint": "Customer-defined compensation field"
+    }
+  ]
+}

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Application Code Sensitive Data Scanner Assessment Tool</title>
+  <style>
+    :root {
+      --ink: #132238;
+      --muted: #58677a;
+      --brand: #005bbb;
+      --brand-dark: #003f82;
+      --accent: #0f8b8d;
+      --surface: #f6f8fb;
+      --line: #d9e1ec;
+      --page-width: 8.5in;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--ink);
+      background: #dfe7f2;
+    }
+
+    .page {
+      width: var(--page-width);
+      min-height: 11in;
+      margin: 0 auto 18px;
+      background: white;
+      padding: 0.72in;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 30px rgba(17, 32, 56, 0.12);
+    }
+
+    .hero {
+      background:
+        radial-gradient(circle at top right, rgba(15, 139, 141, 0.16), transparent 28%),
+        radial-gradient(circle at left 20% top 10%, rgba(0, 91, 187, 0.13), transparent 24%),
+        linear-gradient(135deg, #f8fbff 0%, #edf4fb 100%);
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--brand-dark);
+      background: rgba(0, 91, 187, 0.1);
+      margin-bottom: 18px;
+    }
+
+    h1, h2, h3 { margin: 0; line-height: 1.1; }
+    h1 { font-size: 30px; max-width: 6.4in; margin-bottom: 16px; }
+    h2 { font-size: 22px; margin-bottom: 14px; }
+    h3 { font-size: 15px; margin-bottom: 8px; }
+
+    p {
+      margin: 0 0 12px;
+      line-height: 1.5;
+      font-size: 13.1px;
+      color: var(--muted);
+    }
+
+    .lede {
+      font-size: 15px;
+      max-width: 6.7in;
+      color: #314157;
+      margin-bottom: 22px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1.06fr 0.94fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .benefit-band {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 22px 0 18px;
+    }
+
+    .benefit {
+      padding: 15px 14px;
+      border-radius: 16px;
+      background: #0f2036;
+      color: white;
+      min-height: 110px;
+    }
+
+    .benefit .label {
+      display: block;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 7px;
+    }
+
+    .benefit .copy {
+      font-size: 12px;
+      line-height: 1.45;
+      color: rgba(255, 255, 255, 0.82);
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .card, .panel, .stack, .report-box {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: white;
+    }
+
+    .card {
+      padding: 16px;
+      min-height: 146px;
+    }
+
+    .card strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 8px;
+      color: var(--ink);
+    }
+
+    .panel {
+      padding: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbfe 100%);
+    }
+
+    .stack {
+      overflow: hidden;
+    }
+
+    .stack .row {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .stack .row:last-child { border-bottom: 0; }
+
+    .row-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--brand-dark);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .callout {
+      margin-top: 18px;
+      padding: 16px 18px;
+      border-left: 5px solid var(--accent);
+      background: #effbfb;
+      border-radius: 0 16px 16px 0;
+      color: #244049;
+    }
+
+    .report-box {
+      padding: 18px;
+      background: #0f1d31;
+      color: #dbe7f7;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11.5px;
+      line-height: 1.5;
+    }
+
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    li { margin-bottom: 7px; }
+
+    .footer {
+      position: absolute;
+      left: 0.72in;
+      right: 0.72in;
+      bottom: 0.48in;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10.5px;
+      color: #71839a;
+    }
+  </style>
+</head>
+<body>
+  <section class="page hero">
+    <div class="eyebrow">Thales Data Protection Assessment</div>
+    <h1>Application Code Sensitive Data Scanner Assessment Tool</h1>
+    <p class="lede">
+      A source-code assessment accelerator that finds sensitive field references, identifies likely change owners,
+      and highlights where a Thales JDBC driver approach may reduce or eliminate application code changes.
+    </p>
+
+    <div class="benefit-band">
+      <div class="benefit">
+        <span class="label">Scope Clarity</span>
+        <span class="copy">Separates broad sensitive-field awareness from the files that are more likely to require implementation change.</span>
+      </div>
+      <div class="benefit">
+        <span class="label">Faster Planning</span>
+        <span class="copy">Helps architects and project teams reduce guesswork in level-of-effort, workshop prep, and migration scoping.</span>
+      </div>
+      <div class="benefit">
+        <span class="label">Actionable Output</span>
+        <span class="copy">Provides repeatable console and JSON reporting for developers, delivery teams, and DevOps teams.</span>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <h2>Why It Matters</h2>
+        <p>
+          Customers generally know they need to protect sensitive data. The harder question is where the real migration effort lives.
+          Multi-tier applications often reference sensitive fields in front-end code, but the real implementation work usually sits in back-end services,
+          API layers, JDBC paths, SQL statements, Kafka flows, and other integration logic.
+        </p>
+        <p>
+          This scanner gives customers a fast, explainable way to move from architecture assumptions to code-based evidence.
+        </p>
+        <div class="callout">
+          The scanner is built for source code, not production data values. It is designed to find field names like
+          <strong>`ssn`, `dateOfBirth`, `acctNbr`, `householdId`, and `salaryAmount`</strong> across real codebases.
+        </div>
+      </div>
+
+      <div class="stack">
+        <div class="row">
+          <div class="row-title">Questions It Answers</div>
+          <p>Where do sensitive fields appear, which files are likely front-end only, which files look like true back-end owners, and where JDBC may lower impact.</p>
+        </div>
+        <div class="row">
+          <div class="row-title">Typical Application Tiers</div>
+          <p>React, Angular, or Node.js clients; Spring Boot, .NET, Python, Go, or Node.js services; and JDBC, SQL, Kafka, or vector-search integrations.</p>
+        </div>
+        <div class="row">
+          <div class="row-title">Planning Value</div>
+          <p>Takes guesswork out of migration discussions by showing where testing, delivery effort, and implementation ownership are likely to concentrate.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>Application Code Sensitive Data Scanner Assessment Tool</span>
+      <span>Page 1</span>
+    </div>
+  </section>
+
+  <section class="page">
+    <h2>Executive Summary And How The Scanner Works</h2>
+    <div class="grid-2">
+      <div class="panel">
+        <h3>Code-Aware Identifier Discovery</h3>
+        <p>
+          The scanner extracts identifier-like tokens, normalizes naming styles, and compares them to built-in and customer-defined aliases.
+        </p>
+        <ul>
+          <li>Raw token: <code>accntNbr</code></li>
+          <li>Normalized token: <code>accnt_nbr</code></li>
+          <li>Configured alias: <code>accnt_nbr</code></li>
+          <li>Result: <code>CUSTOM_ACCOUNT_NUMBER</code></li>
+        </ul>
+        <p>
+          This works well across camelCase, PascalCase, snake_case, and customer-specific abbreviations such as
+          <code>acctNbr</code>, <code>accntNbr</code>, <code>householdNbr</code>, and <code>hhId</code>.
+        </p>
+      </div>
+      <div class="panel">
+        <h3>Ownership And Route Correlation</h3>
+        <p>
+          The scanner now goes beyond field counting. It looks for route ownership, API layers, SQL and JDBC access, and supporting DTO/model files.
+        </p>
+        <ul>
+          <li><code>frontend_reference_only</code></li>
+          <li><code>backend_logic_owner</code></li>
+          <li><code>data_access_owner</code></li>
+          <li><code>jdbc_candidate</code></li>
+          <li><code>supporting_model</code></li>
+        </ul>
+        <p>
+          In this context, a DTO is a Data Transfer Object: a simple class or record used to carry data between layers,
+          such as a request body, response payload, or model shape passed between controller, service, and repository code.
+          It usually describes structure, not business logic.
+        </p>
+      </div>
+    </div>
+
+    <div class="card-grid">
+      <div class="card">
+        <strong>What It Produces</strong>
+        <p>Line-level findings, matched attributes, category summaries, progress indicators, and optional JSON output.</p>
+      </div>
+      <div class="card">
+        <strong>What It Classifies</strong>
+        <p>Front end, back end, data access, likely change owner, role in flow, and supporting model patterns.</p>
+      </div>
+      <div class="card">
+        <strong>Why It Helps</strong>
+        <p>Shows the difference between files that mention sensitive data and files that are more likely to require CRDP or JDBC migration work.</p>
+      </div>
+    </div>
+
+    <h2 style="margin-top: 24px;">Executive Summary Output</h2>
+    <div class="report-box">
+Root path: E:\codex\work\migration\sample_code
+Files scanned: 42
+Files with PII indicators: 38
+Total PII matches: 511
+Potential JDBC-driver candidates: 70
+Potential code-change candidates: 209
+
+Executive summary:
+  Likely change owner summary:
+    - supporting_model: 17
+    - frontend_reference_only: 9
+    - jdbc_candidate: 9
+    - backend_logic_owner: 3
+  Role in flow summary:
+    - supporting_model: 17
+    - collects_and_sends: 9
+    - persists_or_publishes: 9
+    - receives_and_transforms: 3
+  Complexity distribution:
+    - low: 6
+    - medium: 12
+    - high: 20
+  Front-end to back-end correlations:
+    - CustomerProfile.tsx -> CustomerController.java (score 0.8)
+    - HouseholdMemberScreen.tsx -> HouseholdController.java (score 0.8)
+  Back-end to data-access correlations:
+    - HouseholdProtectionService.java -> HouseholdRepository.java (score 0.67)
+  Likely JDBC tables and sensitive columns:
+    - customer_profile: date_of_birth, email, first_name, last_name, phone_number (files 2)
+    - household_member_profile: account_number, home_address, household_id, primary_email, salary_amount (files 1)
+    </div>
+
+    <div class="callout">
+      The executive summary now helps teams answer not only where sensitive fields appear, but which files are likely true migration touchpoints, which files are supporting DTO or model definitions, and which tables and columns should be handed to DBAs early.
+    </div>
+
+    <div class="footer">
+      <span>Application Code Sensitive Data Scanner Assessment Tool</span>
+      <span>Page 2</span>
+    </div>
+  </section>
+
+  <section class="page">
+    <h2>Metrics, Complexity, And Customer Outcome</h2>
+    <div class="card-grid">
+      <div class="card">
+        <strong>Files Scanned</strong>
+        <p>Total files analyzed in scope, including source and related code artifacts.</p>
+      </div>
+      <div class="card">
+        <strong>Files With Indicators</strong>
+        <p>Files containing at least one built-in or customer-defined sensitive field reference.</p>
+      </div>
+      <div class="card">
+        <strong>Total Matches</strong>
+        <p>Line-level findings across the codebase. Useful for sizing review effort, not just implementation effort.</p>
+      </div>
+      <div class="card">
+        <strong>JDBC Candidates</strong>
+        <p>Estimated areas where SQL and JDBC evidence suggest a lower-impact migration path.</p>
+      </div>
+      <div class="card">
+        <strong>Code-Change Candidates</strong>
+        <p>Estimated service and orchestration areas where CRDP REST changes may require implementation work.</p>
+      </div>
+      <div class="card">
+        <strong>Ownership Fields</strong>
+        <p>Likely change owner, role in flow, related files, endpoint correlation, and system-of-record indicators.</p>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top: 20px;">
+      <div class="panel">
+        <h3>Complexity Index Inputs</h3>
+        <ul>
+          <li>Lines of code</li>
+          <li>Number of sensitive-field matches</li>
+          <li>REST and orchestration markers</li>
+          <li>SQL and JDBC markers</li>
+          <li>Likely JDBC substitution opportunity</li>
+          <li>Layer and ownership classification</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Complexity Ratings</h3>
+        <ul>
+          <li><strong>Low:</strong> limited touchpoints or mostly front-end-only awareness</li>
+          <li><strong>Medium:</strong> bounded implementation effort with manageable testing scope</li>
+          <li><strong>High:</strong> multiple sensitive fields, integrations, and larger regression scope</li>
+        </ul>
+        <p>
+          The complexity index is a planning aid. It is not a replacement for architecture review, but it helps teams start with evidence instead of guesswork.
+        </p>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top: 20px;">
+      <div class="panel">
+        <h3>What The Executive Summary Adds</h3>
+        <ul>
+          <li>Likely change-owner counts across the scanned portfolio</li>
+          <li>Role-in-flow counts to separate collection, transformation, and persistence</li>
+          <li>Top front-end to back-end and back-end to data-access correlations</li>
+          <li>JDBC table and sensitive-column summaries for DBA handoff</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Who Benefits</h3>
+        <ul>
+          <li>Architects and project planners sizing migration effort</li>
+          <li>Developers focusing on likely implementation owners</li>
+          <li>DBAs validating table and column scope earlier</li>
+          <li>DevOps teams running repeatable scans across repositories</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2 style="margin-top: 24px;">Customer Outcome</h2>
+    <p>
+      Instead of relying on diagrams alone, customers can review concrete evidence showing where sensitive fields appear,
+      which files are likely front-end references only, which files are likely API or business-logic owners, which service
+      files correlate to likely data-access owners, and where a Thales JDBC driver may reduce code changes.
+    </p>
+    <p>
+      The result is faster scoping, clearer project planning, better DBA preparation, better developer alignment, and more
+      practical discussions about CRDP REST versus JDBC-based protection.
+    </p>
+
+    <div class="callout">
+      The scanner is built around source-code identifiers and aliases, which keeps the approach portable and suitable for future Java-based implementations as well.
+    </div>
+
+    <div class="footer">
+      <span>Application Code Sensitive Data Scanner Assessment Tool</span>
+      <span>Page 3</span>
+    </div>
+  </section>
+</body>
+</html>

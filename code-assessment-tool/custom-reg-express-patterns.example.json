@@ -1,0 +1,22 @@
+{
+  "custom_regex_patterns": [
+    {
+      "name": "household-id-literal",
+      "category": "CUSTOM_HOUSEHOLD_ID_LITERAL",
+      "pattern": "HH-[0-9]{5,10}",
+      "impact_hint": "Literal household identifier format"
+    },
+    {
+      "name": "account-number-literal",
+      "category": "CUSTOM_ACCOUNT_NUMBER_LITERAL",
+      "pattern": "\\b[0-9]{10,12}\\b",
+      "impact_hint": "Literal account number format"
+    },
+    {
+      "name": "salary-literal",
+      "category": "CUSTOM_SALARY_LITERAL",
+      "pattern": "\\$[0-9]{2,3},[0-9]{3}",
+      "impact_hint": "Literal salary amount format"
+    }
+  ]
+}
