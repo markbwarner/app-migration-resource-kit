@@ -10,10 +10,16 @@ from .detectors import build_presidio_analyzer, detect_custom_regex_matches, det
 from .models import ComplexityAssessment, FileReport, PiiMatch, ScanReport
 from .ownership import assess_ownership, correlate_ownership, extract_endpoints, extract_payload_fields, extract_sensitive_table_map, extract_system_of_record_paths
 
+GENERATED_REPORT_FILENAMES = {
+    "pii-impact-report.json",
+    "tmp-summary.json",
+}
+
 
 def scan_directory(
     root_path: Path,
     exclude_dirs: Sequence[str] | None = None,
+    exclude_paths: Sequence[Path] | None = None,
     custom_rules: Sequence[CustomKeywordRule] | None = None,
     custom_regex_rules: Sequence[CustomRegexRule] | None = None,
     suppress_default_on_custom_match: bool = False,
@@ -23,6 +29,7 @@ def scan_directory(
     excludes = set(DEFAULT_EXCLUDES)
     if exclude_dirs:
         excludes.update(exclude_dirs)
+    excluded_paths = {path.resolve() for path in (exclude_paths or [])}
 
     analyzer = build_presidio_analyzer() if use_presidio else None
     file_reports: List[FileReport] = []
@@ -34,7 +41,7 @@ def scan_directory(
     code_change_candidate_total = 0
     files_scanned = 0
 
-    source_files = sorted(_iter_source_files(root_path, excludes))
+    source_files = sorted(_iter_source_files(root_path, excludes, excluded_paths))
     total_files = len(source_files)
     if progress_callback:
         progress_callback(f"Discovered {total_files} source files to scan under {root_path}")
@@ -75,11 +82,19 @@ def scan_directory(
     )
 
 
-def _iter_source_files(root_path: Path, excludes: set[str]) -> Iterable[Path]:
+def _iter_source_files(
+    root_path: Path,
+    excludes: set[str],
+    excluded_paths: set[Path],
+) -> Iterable[Path]:
     for path in root_path.rglob("*"):
         if not path.is_file():
             continue
         if any(part in excludes for part in path.parts):
+            continue
+        if path.resolve() in excluded_paths:
+            continue
+        if path.name.lower() in GENERATED_REPORT_FILENAMES:
             continue
         if is_source_file(path):
             yield path

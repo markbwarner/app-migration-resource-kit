@@ -163,6 +163,8 @@ def assess_ownership(
         rationale.append("File looks like a DTO/model/supporting type and not the primary implementation owner.")
         return OwnershipAssessment(
             likely_change_owner="supporting_model",
+            likely_change_target=False,
+            recommended_change_action="supporting_model_only",
             ownership_confidence=0.61,
             role_in_flow="supporting_model",
             frontend_reference_only=False,
@@ -186,6 +188,8 @@ def assess_ownership(
             rationale.append("API call patterns suggest this file sends sensitive fields to another tier.")
         return OwnershipAssessment(
             likely_change_owner="frontend_reference_only",
+            likely_change_target=False,
+            recommended_change_action="frontend_reference_only",
             ownership_confidence=round(confidence, 2),
             role_in_flow=role,
             frontend_reference_only=True,
@@ -209,6 +213,8 @@ def assess_ownership(
             rationale.append("This file also exposes or participates in an endpoint path.")
         return OwnershipAssessment(
             likely_change_owner=owner,
+            likely_change_target=True,
+            recommended_change_action=_recommended_change_action(owner),
             ownership_confidence=round(confidence, 2),
             role_in_flow=role,
             frontend_reference_only=False,
@@ -230,6 +236,8 @@ def assess_ownership(
             rationale.append("Route ownership suggests this file is a likely API-side change point.")
         return OwnershipAssessment(
             likely_change_owner="backend_logic_owner",
+            likely_change_target=True,
+            recommended_change_action="review_crdp_rest_change",
             ownership_confidence=round(confidence, 2),
             role_in_flow=role,
             frontend_reference_only=False,
@@ -245,6 +253,8 @@ def assess_ownership(
 
     return OwnershipAssessment(
         likely_change_owner="unknown",
+        likely_change_target=False,
+        recommended_change_action="needs_manual_review",
         ownership_confidence=0.35,
         role_in_flow="unknown",
         frontend_reference_only=False,
@@ -257,6 +267,20 @@ def assess_ownership(
         related_files=[],
         rationale=["Insufficient ownership evidence from current heuristics."],
     )
+
+
+def _recommended_change_action(likely_change_owner: str) -> str:
+    if likely_change_owner == "jdbc_candidate":
+        return "review_jdbc_substitution"
+    if likely_change_owner == "data_access_owner":
+        return "review_data_access_change"
+    if likely_change_owner == "backend_logic_owner":
+        return "review_crdp_rest_change"
+    if likely_change_owner == "frontend_reference_only":
+        return "frontend_reference_only"
+    if likely_change_owner == "supporting_model":
+        return "supporting_model_only"
+    return "needs_manual_review"
 
 
 def correlate_ownership(file_reports: Sequence[FileReport]) -> None:

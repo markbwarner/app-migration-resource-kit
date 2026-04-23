@@ -77,6 +77,11 @@ This works well across:
 - a complexity score
 - progress indicators during scanning
 - optional JSON report output
+- explicit change-target guidance using:
+  - `likely_change_target`
+  - `recommended_change_action`
+- Excel-friendly CSV export of likely change targets
+- summary-only and file-level `.json` outputs for further analysis
 
 ### Why Ownership Analysis Matters
 
@@ -97,7 +102,19 @@ A DTO usually describes the data structure, not the business logic. That is why 
 
 This helps customers move from "where is sensitive data mentioned?" to "what actually needs to change?"
 
-### Executive Summary Output
+It also makes the output easier to operationalize because teams can now filter files into actions such as:
+
+- `review_crdp_rest_change`
+- `review_jdbc_substitution`
+- `review_data_access_change`
+- `frontend_reference_only`
+- `supporting_model_only`
+
+Likely change targets snapshot:
+
+![Likely change targets](E:\codex\work\migration\docs\marketing\assets\change_candidates.PNG)
+
+### Executive Summary Snapshot
 
 The executive summary is now the primary output because it gives architects, developers, project planners, and DBAs a faster way to understand where effort is likely to concentrate.
 
@@ -117,6 +134,11 @@ Executive summary:
     - frontend_reference_only: 9
     - jdbc_candidate: 9
     - backend_logic_owner: 3
+  Recommended change action summary:
+    - supporting_model_only: 17
+    - frontend_reference_only: 9
+    - review_jdbc_substitution: 9
+    - review_crdp_rest_change: 3
   Role in flow summary:
     - supporting_model: 17
     - collects_and_sends: 9
@@ -126,14 +148,6 @@ Executive summary:
     - low: 6
     - medium: 12
     - high: 20
-  Front-end to back-end correlations:
-    - CustomerProfile.tsx -> CustomerController.java (score 0.8)
-    - HouseholdMemberScreen.tsx -> HouseholdController.java (score 0.8)
-  Back-end to data-access correlations:
-    - HouseholdProtectionService.java -> HouseholdRepository.java (score 0.67)
-  Likely JDBC tables and sensitive columns:
-    - customer_profile: date_of_birth, email, first_name, last_name, phone_number (files 2)
-    - household_member_profile: account_number, home_address, household_id, primary_email, salary_amount (files 1)
 ```
 
 This summary helps teams quickly answer:
@@ -142,6 +156,7 @@ This summary helps teams quickly answer:
 - which files are only front-end references or supporting models
 - which back-end flows correlate to data-access layers
 - which JDBC tables and sensitive columns should be handed to DBAs early
+- which files should be reviewed first for CRDP REST changes versus JDBC substitution
 
 ## Page 3: Metrics, Complexity, And Customer Outcome
 
@@ -159,10 +174,29 @@ This summary helps teams quickly answer:
   - Files more likely to require CRDP REST orchestration or transformation work.
 - **Ownership fields**
   - Evidence about likely change owner, role in flow, related files, and endpoint correlation.
+- **DBA handoff outputs**
+  - The likely-change-targets CSV now includes `jdbc_tables` and `sensitive_columns`, and an optional SQL handoff file can generate `describe` and max-length checks for JDBC-candidate tables.
+- **Important output attributes**
+  - `likely_change_target`
+  - `recommended_change_action`
+  - `likely_change_owner`
+  - `ownership_confidence`
+  - `jdbc_tables`
+  - `sensitive_columns`
+- **Additional planning metrics**
+  - `backend_owner_confidence`
+  - `endpoint_correlation_score`
+  - `code_change_candidate_count`
+  - `jdbc_candidate_count`
+  - `complexity_rating`
+  - `complexity_score`
+  - Teams can use the generated SQL to check current max stored lengths and compare them against column widths when planning for additional tokenization metadata.
 - **Executive summary correlations**
   - Highlights likely front-end to back-end and back-end to data-access relationships without requiring teams to read every file-level finding.
 - **DBA handoff summary**
-  - Groups likely JDBC tables and sensitive columns so database teams can validate scope and prepare for migration activity sooner.
+  - Groups likely JDBC tables and sensitive columns and can produce a DBA planning SQL handoff file.
+- **Output options for further analysis**
+  - Produces `.json`, `.csv`, and optional SQL outputs that can be filtered in Excel, Power Query, or BI tools.
 
 ### Complexity Index
 
@@ -195,6 +229,7 @@ Complexity ratings:
 - onboarding new customer-specific aliases
 - DBA planning and schema-readiness review
 - executive and project-planning readouts using the executive summary
+- Excel-based working sessions that need a clean change-target list
 
 ### Customer Outcome
 
@@ -208,6 +243,7 @@ Instead of debating migration scope from diagrams alone, customers can review co
 - which front-end files correlate to likely back-end owners
 - which service files correlate to likely data-access owners
 - which JDBC tables and sensitive columns should be validated by DBAs
+- which files should be reviewed first for CRDP REST changes versus JDBC substitution
 - where testing and delivery effort are likely to concentrate
 
 The result is faster scoping, clearer project planning, better DBA preparation, and a more practical conversation about Thales CRDP REST protection versus JDBC-based protection.

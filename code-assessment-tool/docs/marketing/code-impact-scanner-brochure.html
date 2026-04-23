@@ -180,6 +180,28 @@
       line-height: 1.5;
     }
 
+    .image-frame {
+      margin-top: 20px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+      background: white;
+    }
+
+    .image-frame img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .image-caption {
+      padding: 12px 16px 14px;
+      font-size: 12px;
+      color: var(--muted);
+      background: #f8fbfe;
+      border-top: 1px solid var(--line);
+    }
+
     ul {
       margin: 10px 0 0 18px;
       padding: 0;
@@ -308,11 +330,11 @@
     <div class="card-grid">
       <div class="card">
         <strong>What It Produces</strong>
-        <p>Line-level findings, matched attributes, category summaries, progress indicators, and optional JSON output.</p>
+        <p>Line-level findings, matched attributes, category summaries, progress indicators, optional JSON output, and Excel-friendly CSV export of likely change targets.</p>
       </div>
       <div class="card">
         <strong>What It Classifies</strong>
-        <p>Front end, back end, data access, likely change owner, role in flow, and supporting model patterns.</p>
+        <p>Front end, back end, data access, likely change owner, likely change target, recommended change action, role in flow, and supporting model patterns.</p>
       </div>
       <div class="card">
         <strong>Why It Helps</strong>
@@ -320,7 +342,15 @@
       </div>
     </div>
 
-    <h2 style="margin-top: 24px;">Executive Summary Output</h2>
+    <div class="image-frame">
+      <img src="./assets/change_candidates.PNG" alt="Likely change targets snapshot" />
+      <div class="image-caption">
+        Likely change targets snapshot showing the files most likely to require review for CRDP REST changes,
+        data-access updates, or JDBC substitution.
+      </div>
+    </div>
+
+    <h2 style="margin-top: 22px;">Executive Summary Snapshot</h2>
     <div class="report-box">
 Root path: E:\codex\work\migration\sample_code
 Files scanned: 42
@@ -335,6 +365,11 @@ Executive summary:
     - frontend_reference_only: 9
     - jdbc_candidate: 9
     - backend_logic_owner: 3
+  Recommended change action summary:
+    - supporting_model_only: 17
+    - frontend_reference_only: 9
+    - review_jdbc_substitution: 9
+    - review_crdp_rest_change: 3
   Role in flow summary:
     - supporting_model: 17
     - collects_and_sends: 9
@@ -344,18 +379,10 @@ Executive summary:
     - low: 6
     - medium: 12
     - high: 20
-  Front-end to back-end correlations:
-    - CustomerProfile.tsx -> CustomerController.java (score 0.8)
-    - HouseholdMemberScreen.tsx -> HouseholdController.java (score 0.8)
-  Back-end to data-access correlations:
-    - HouseholdProtectionService.java -> HouseholdRepository.java (score 0.67)
-  Likely JDBC tables and sensitive columns:
-    - customer_profile: date_of_birth, email, first_name, last_name, phone_number (files 2)
-    - household_member_profile: account_number, home_address, household_id, primary_email, salary_amount (files 1)
     </div>
 
     <div class="callout">
-      The executive summary now helps teams answer not only where sensitive fields appear, but which files are likely true migration touchpoints, which files are supporting DTO or model definitions, and which tables and columns should be handed to DBAs early.
+      The executive summary now helps teams answer not only where sensitive fields appear, but which files are likely true migration touchpoints, which files are supporting DTO or model definitions, which tables and columns should be handed to DBAs early, and which files should be reviewed first for CRDP REST changes versus JDBC substitution.
     </div>
 
     <div class="footer">
@@ -391,6 +418,10 @@ Executive summary:
         <strong>Ownership Fields</strong>
         <p>Likely change owner, role in flow, related files, endpoint correlation, and system-of-record indicators.</p>
       </div>
+      <div class="card">
+        <strong>DBA Handoff Outputs</strong>
+        <p>The likely-change-targets CSV now includes <code>jdbc_tables</code> and <code>sensitive_columns</code>, and an optional SQL handoff file can generate <code>describe</code> and max-length checks for JDBC-candidate tables.</p>
+      </div>
     </div>
 
     <div class="grid-2" style="margin-top: 20px;">
@@ -420,12 +451,39 @@ Executive summary:
 
     <div class="grid-2" style="margin-top: 20px;">
       <div class="panel">
+        <h3>Important Output Attributes</h3>
+        <ul>
+          <li><code>likely_change_target</code> highlights the files most likely to need review.</li>
+          <li><code>recommended_change_action</code> gives the fastest search and triage field.</li>
+          <li><code>likely_change_owner</code> shows whether the file looks like back-end logic, data access, JDBC candidate, or supporting model.</li>
+          <li><code>ownership_confidence</code> helps teams focus first on the strongest candidates.</li>
+          <li><code>jdbc_tables</code> and <code>sensitive_columns</code> make DBA handoff easier.</li>
+        </ul>
+        <p>These fields are available in JSON and CSV outputs, and JDBC-candidate tables can also be exported to a DBA planning SQL file for further analysis.</p>
+      </div>
+      <div class="panel">
+        <h3>Additional Planning Metrics</h3>
+        <ul>
+          <li><code>backend_owner_confidence</code></li>
+          <li><code>endpoint_correlation_score</code></li>
+          <li><code>code_change_candidate_count</code></li>
+          <li><code>jdbc_candidate_count</code></li>
+          <li><code>complexity_rating</code></li>
+          <li><code>complexity_score</code></li>
+        </ul>
+        <p>Teams can use the generated SQL to check current max stored lengths and compare them against column widths when planning for additional tokenization metadata.</p>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top: 20px;">
+      <div class="panel">
         <h3>What The Executive Summary Adds</h3>
         <ul>
           <li>Likely change-owner counts across the scanned portfolio</li>
+          <li>Recommended change-action counts for faster triage</li>
           <li>Role-in-flow counts to separate collection, transformation, and persistence</li>
           <li>Top front-end to back-end and back-end to data-access correlations</li>
-          <li>JDBC table and sensitive-column summaries for DBA handoff</li>
+          <li>JDBC table and sensitive-column summaries plus a DBA planning SQL handoff file</li>
         </ul>
       </div>
       <div class="panel">
@@ -435,6 +493,7 @@ Executive summary:
           <li>Developers focusing on likely implementation owners</li>
           <li>DBAs validating table and column scope earlier</li>
           <li>DevOps teams running repeatable scans across repositories</li>
+          <li>Excel-based working sessions that need clean JSON and CSV outputs for further analysis</li>
         </ul>
       </div>
     </div>
@@ -443,7 +502,7 @@ Executive summary:
     <p>
       Instead of relying on diagrams alone, customers can review concrete evidence showing where sensitive fields appear,
       which files are likely front-end references only, which files are likely API or business-logic owners, which service
-      files correlate to likely data-access owners, and where a Thales JDBC driver may reduce code changes.
+      files correlate to likely data-access owners, which files should be reviewed first for CRDP REST changes versus JDBC substitution, and where a Thales JDBC driver may reduce code changes.
     </p>
     <p>
       The result is faster scoping, clearer project planning, better DBA preparation, better developer alignment, and more

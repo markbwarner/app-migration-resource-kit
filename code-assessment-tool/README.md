@@ -17,6 +17,10 @@ This Python application scans a source tree for likely PII references, reports l
   - PII category
 - Produces per-file summaries by category
 - Produces a report-level summary of likely JDBC table names and sensitive columns to support DBA planning
+- Produces explicit change-target guidance using:
+  - `likely_change_target`
+  - `recommended_change_action`
+- Supports Excel-friendly export of likely change targets for project planning and developer handoff
 - Classifies files into likely layers:
   - `frontend`
   - `frontend_with_service_calls`
@@ -91,64 +95,156 @@ The scanner runs without Presidio. Presidio is optional and only needed if you w
 ## Usage
 
 ```powershell
-python app.py E:\source\customer-app --json-out E:\source\customer-app\pii-impact-report.json
+python app.py C:\yourproject\sample_code --json-out C:\yourproject\pii-impact-report.json
 ```
 
 By default the scanner prints progress messages while it runs so long scans do not appear stalled.
-By default the console output now shows an executive summary only. Use `--include-file-reports` if you want the detailed file-by-file findings printed as well.
-By default the JSON output also contains the executive summary only. Use `--json-include-file-reports` if you want the detailed file-by-file findings included in the JSON report.
+By default the console output shows an executive summary only. Use `--console-include-file-reports` if you want the detailed file-by-file findings printed to the console as well.
+By default the JSON output also contains the executive summary only. Use `--include-file-reports` if you want the detailed file-by-file findings included in the JSON report.
 
 If you want to suppress progress output:
 
 ```powershell
-python app.py E:\source\customer-app --quiet
+python app.py C:\yourproject\sample_code --quiet
 ```
 
 If you want to see the exact matched hint terms that contributed to file classification:
 
 ```powershell
-python app.py E:\source\customer-app --include-file-reports --show-hint-breakdown
+python app.py C:\yourproject\sample_code --console-include-file-reports --show-hint-breakdown
 ```
 
 Optional Presidio pass:
 
 ```powershell
-python app.py E:\source\customer-app --use-presidio
+python app.py C:\yourproject\sample_code --use-presidio
 ```
 
 Optional excludes:
 
 ```powershell
-python app.py E:\source\customer-app --exclude-dir coverage --exclude-dir generated
+python app.py C:\yourproject\sample_code --exclude-dir coverage --exclude-dir generated
 ```
 
 Custom customer-defined patterns:
 
 ```powershell
-python app.py E:\source\customer-app --custom-patterns E:\codex\work\migration\custom-patterns.example.json
+python app.py C:\yourproject\sample_code --custom-patterns C:\yourproject\custom-patterns.example.json
 ```
 
 If you want customer-defined categories to replace the built-in keyword category for the same identifier:
 
 ```powershell
-python app.py E:\source\customer-app --custom-patterns E:\codex\work\migration\custom-patterns.example.json --custom-patterns-override-defaults
+python app.py C:\yourproject\sample_code --custom-patterns C:\yourproject\custom-patterns.example.json --custom-patterns-override-defaults
 ```
 
 If you want the detailed file-level report output:
 
 ```powershell
-python app.py E:\source\customer-app --include-file-reports
+python app.py C:\yourproject\sample_code --console-include-file-reports
 ```
 
 If you want the JSON report to include the detailed file-by-file findings:
 
 ```powershell
-python app.py E:\source\customer-app --json-out E:\source\customer-app\pii-impact-report.json --json-include-file-reports
+python app.py C:\yourproject\sample_code --json-out C:\yourproject\pii-impact-report.json --include-file-reports
+```
+
+If you want an Excel-friendly CSV of likely change targets:
+
+```powershell
+python app.py C:\yourproject\sample_code --custom-patterns C:\yourproject\custom-patterns.example.json --csv-out C:\yourproject\likely-change-targets.csv
+```
+
+If you want a DBA planning SQL file for JDBC-candidate tables:
+
+```powershell
+python app.py C:\yourproject\sample_code --custom-patterns C:\yourproject\custom-patterns.example.json --csv-out C:\yourproject\likely-change-targets.csv --sql-out C:\yourproject\dba-planning.sql
+```
+
+If you want split outputs for dashboards, Power Query, or BI tools:
+
+```powershell
+python app.py C:\yourproject\sample_code `
+  --custom-patterns C:\yourproject\custom-patterns.example.json `
+  --json-out C:\yourproject\pii-impact-report.json `
+  --json-summary-out C:\yourproject\pii-impact-summary.json `
+  --json-file-reports-out C:\yourproject\pii-file-reports.json `
+  --csv-file-reports-out C:\yourproject\pii-file-reports.csv `
+  --csv-out C:\yourproject\likely-change-targets.csv `
+  --include-file-reports
+```
+
+That command produces:
+
+- `pii-impact-report.json`
+  - full report payload
+- `pii-impact-summary.json`
+  - summary-only JSON with top-level totals and executive summary
+- `pii-file-reports.json`
+  - file-level report objects only
+- `pii-file-reports.csv`
+  - flattened all-file dataset for Excel, Power Query, or Power BI
+- `likely-change-targets.csv`
+  - filtered working list of the files most likely to need migration review
+
+### Run script examples
+
+The repository also includes timestamped helper scripts under `bin/` that build output file names from the input folder name.
+
+Example naming pattern:
+
+- input folder: `sample_code`
+- output file: `sample_code_likely-change-targets_20260423_091500.csv`
+- output file: `sample_code_dba-planning_20260423_091500.sql`
+
+The scripts default to:
+
+- custom patterns file: `C:\yourproject\custom-patterns.example.json`
+- output folder: `C:\yourproject\reports`
+
+Available run profiles:
+
+- `bin\run-summary-only.bat` and `./bin/run-summary-only.sh`
+  - writes just the summary JSON
+- `bin\run-summary-dba.bat` and `./bin/run-summary-dba.sh`
+  - writes summary JSON, likely-change-targets CSV, and DBA planning SQL
+- `bin\run-detailed-report-only.bat` and `./bin/run-detailed-report-only.sh`
+  - writes the full detailed JSON plus file-report JSON and CSV
+- `bin\run-full-assessment.bat` and `./bin/run-full-assessment.sh`
+  - writes everything: full report JSON, summary JSON, file-report JSON, file-report CSV, likely-change-targets CSV, and DBA planning SQL
+
+Windows examples:
+
+```powershell
+bin\run-summary-dba.bat sample_code
+bin\run-full-assessment.bat sample_code
+bin\run-detailed-report-only.bat sample_code
+```
+
+Shell examples:
+
+```bash
+./bin/run-summary-dba.sh sample_code
+./bin/run-full-assessment.sh sample_code
+./bin/run-detailed-report-only.sh sample_code
+```
+
+Optional arguments for each script:
+
+1. input directory to scan
+2. custom patterns JSON path
+3. output directory
+
+Example with explicit paths:
+
+```powershell
+bin\run-summary-dba.bat C:\yourproject\sample_code C:\yourproject\custom-patterns.example.json C:\yourproject\reports
 ```
 ## Example output
 
 ```text
-File: E:\source\customer-app\src\main\java\com\acme\CustomerDao.java
+File: C:\yourproject\src\main\java\com\acme\CustomerDao.java
   Layer: backend_with_data_access (confidence 0.86)
   LOC: 180, REST calls: 0, SQL markers: 8, JDBC markers: 6
   Potential JDBC-driver candidates: 6, potential code-change candidates: 2
@@ -485,6 +581,8 @@ These fields help answer a key migration question:
 Additional report fields include:
 
 - `likely_change_owner`
+- `likely_change_target`
+- `recommended_change_action`
 - `ownership_confidence`
 - `role_in_flow`
 - `frontend_reference_only`
@@ -506,6 +604,7 @@ This is intended to make it easier to hand a focused table and column list to DB
 The executive summary also includes:
 
 - likely change owner counts
+- recommended change action counts
 - role-in-flow counts
 - complexity distribution
 - top front-end to back-end correlations
@@ -520,6 +619,26 @@ Typical values for `likely_change_owner`:
 - `jdbc_candidate`
 - `supporting_model`
 - `unknown`
+
+Typical values for `recommended_change_action`:
+
+- `review_crdp_rest_change`
+- `review_data_access_change`
+- `review_jdbc_substitution`
+- `frontend_reference_only`
+- `supporting_model_only`
+- `needs_manual_review`
+
+How to use these fields:
+
+- `likely_change_target=true`
+  - easiest first-pass filter for files worth reviewing first
+- `recommended_change_action=review_crdp_rest_change`
+  - likely CRDP REST code-change candidates
+- `recommended_change_action=review_jdbc_substitution`
+  - likely JDBC-driver substitution candidates
+- `recommended_change_action=review_data_access_change`
+  - likely persistence or integration-layer change candidates
 
 Definitions:
 
@@ -586,6 +705,9 @@ Examples:
 
 Other ownership field meanings:
 
+- `likely_change_target`
+  - Boolean convenience flag.
+  - `true` means the file is a likely primary change candidate worth reviewing first.
 - `ownership_confidence`
   - Numeric confidence score for `likely_change_owner`, currently from `0.0` to `1.0`.
   - Higher means the heuristics found stronger evidence.
@@ -606,6 +728,199 @@ Other ownership field meanings:
   - List of database-style column or storage-path indicators associated with sensitive fields.
 - `related_files`
   - List of file paths that appear correlated by route similarity, payload overlap, or data-access overlap.
+
+### Excel-friendly export
+
+If you want an Excel-friendly CSV of just the likely change targets:
+
+```powershell
+python app.py C:\yourproject\sample_code --custom-patterns C:\yourproject\custom-patterns.example.json --csv-out C:\yourproject\likely-change-targets.csv
+```
+
+The CSV includes fields such as:
+
+- `path`
+- `likely_change_target`
+- `recommended_change_action`
+- `likely_change_owner`
+- `ownership_confidence`
+- `role_in_flow`
+- `code_change_candidate_count`
+- `jdbc_candidate_count`
+- `complexity_rating`
+- `complexity_score`
+- `jdbc_tables`
+- `sensitive_columns`
+
+This is usually the easiest format to filter in Excel for:
+
+- `review_crdp_rest_change`
+- `review_jdbc_substitution`
+- `review_data_access_change`
+
+### Split outputs for Excel, Power Query, and BI tools
+
+The full JSON report is useful as the canonical output, but it mixes:
+
+- report metadata
+- executive summary
+- nested `file_reports`
+- nested arrays inside each file report
+
+That structure is fine for archival and APIs, but flatter outputs are usually easier for Excel and BI tools.
+
+Recommended pattern:
+
+- `--json-out`
+  - full-fidelity report for archival and automation
+- `--json-summary-out`
+  - summary-only JSON for dashboards and lightweight integrations
+- `--json-file-reports-out`
+  - just the `file_reports` array for tools that want file-level objects only
+- `--csv-file-reports-out`
+  - one row per file report, flattened for Excel, Power Query, and Power BI
+- `--csv-out`
+  - likely change targets only, optimized for developer triage and project planning
+
+Typical uses:
+
+- use `likely-change-targets.csv` for working sessions with architects, developers, and project managers
+- use `pii-file-reports.csv` when you want to sort, pivot, chart, and filter the full file-level population
+- use `pii-file-reports.json` if you still want JSON but do not want to strip the summary section first
+- use `pii-impact-summary.json` for executive dashboards or simple automation steps
+
+Example Power Query-friendly command:
+
+```powershell
+python app.py C:\yourproject\sample_code `
+  --custom-patterns C:\yourproject\custom-patterns.example.json `
+  --json-summary-out C:\yourproject\pii-impact-summary.json `
+  --json-file-reports-out C:\yourproject\pii-file-reports.json `
+  --csv-file-reports-out C:\yourproject\pii-file-reports.csv `
+  --csv-out C:\yourproject\likely-change-targets.csv
+```
+
+The flattened `pii-file-reports.csv` includes columns such as:
+
+- `path`
+- `layer`
+- `classification_confidence`
+- `summary_by_category`
+- `likely_change_target`
+- `recommended_change_action`
+- `likely_change_owner`
+- `ownership_confidence`
+- `role_in_flow`
+- `frontend_reference_only`
+- `jdbc_substitution_candidate`
+- `endpoint_correlation_score`
+- `code_change_candidate_count`
+- `jdbc_candidate_count`
+- `complexity_rating`
+- `complexity_score`
+- `matched_endpoints`
+- `matched_payload_fields`
+- `related_files`
+- `sensitive_tables`
+
+Sample CSV output:
+
+```csv
+path,likely_change_target,recommended_change_action,likely_change_owner,ownership_confidence,role_in_flow,code_change_candidate_count,jdbc_candidate_count,complexity_rating,complexity_score
+C:\yourproject\backend\spring-boot\CustomerController.java,True,review_crdp_rest_change,backend_logic_owner,0.84,receives_and_transforms,3,0,high,24.9
+C:\yourproject\backend\spring-boot\CustomerDataStore.java,True,review_data_access_change,data_access_owner,0.82,receives_and_transforms,37,1,high,207.2
+C:\yourproject\backend\spring-boot\CustomerRepository.java,True,review_jdbc_substitution,jdbc_candidate,0.90,persists_or_publishes,11,20,high,92.8
+C:\yourproject\frontend\react\CustomerProfile.tsx,False,frontend_reference_only,frontend_reference_only,0.82,collects_and_sends,0,0,low,6.0
+```
+
+The `jdbc_tables` and `sensitive_columns` fields make the likely-change-target export easier for DBAs to use directly without parsing the combined `sensitive_tables` column.
+
+For DBA planning, the most useful rows are usually:
+
+- `recommended_change_action=review_jdbc_substitution`
+- rows with non-empty `jdbc_tables`
+- rows with non-empty `sensitive_columns`
+
+That gives DBAs a direct view of:
+
+- which application files are likely JDBC-driver candidates
+- which database tables those files appear to touch
+- which sensitive columns may need width validation before migration
+
+Example DBA-friendly columns from `likely-change-targets.csv`:
+
+- `path`
+- `recommended_change_action`
+- `jdbc_tables`
+- `sensitive_columns`
+- `sensitive_tables`
+
+Typical Excel filter:
+
+- `recommended_change_action = review_jdbc_substitution`
+
+That quickly narrows the CSV to the files and tables most relevant for JDBC-based migration review.
+
+### DBA planning SQL export
+
+If you want a single `.sql` file for JDBC-candidate review, use `--sql-out`.
+
+Example:
+
+```powershell
+python app.py C:\yourproject\sample_code `
+  --custom-patterns C:\yourproject\custom-patterns.example.json `
+  --csv-out C:\yourproject\likely-change-targets.csv `
+  --sql-out C:\yourproject\dba-planning.sql
+```
+
+The generated SQL file includes, for each detected JDBC-candidate table:
+
+- a `describe table_name;` statement
+- a `select max(length(column)) ... from table_name;` statement for the sensitive columns found in code
+
+This is intended to support two DBA planning tasks:
+
+- validate table structure and current column definitions
+- validate whether existing data lengths can accommodate additional tokenization metadata
+
+For example, if a Thales policy adds an internal metadata overhead such as 7 extra bytes, DBAs can compare:
+
+- current maximum stored length from the generated SQL
+- current column width in the table definition
+- required future width after adding the expected metadata overhead
+
+Practical review pattern:
+
+1. Run the scanner and generate `likely-change-targets.csv`
+2. Filter for `review_jdbc_substitution`
+3. Review `jdbc_tables` and `sensitive_columns`
+4. Run the generated `dba-planning.sql`
+5. Compare current max lengths and declared column widths
+6. Identify columns that may need width increases before rollout
+
+Example output:
+
+```sql
+describe billing_account;
+
+select
+  max(length(account_number)) as max_account_number_length,
+  max(length(billing_address)) as max_billing_address_length,
+  max(length(card_number)) as max_card_number_length,
+  max(length(cvv)) as max_cvv_length,
+  max(length(routing_number)) as max_routing_number_length
+from billing_account;
+```
+
+If you want to estimate whether an additional 7 bytes may fit, a DBA can compare the current maximum length from the query above with the actual column size from the table definition. For example, if `account_number` is defined as `varchar(20)` and the current maximum length is `14`, then `14 + 7 = 21` suggests that column may need to be widened before rollout.
+
+Syntax notes:
+
+- the generated `select max(length(column))` form is valid SQL for Oracle, PostgreSQL, and MySQL-family databases
+- SQL Server typically uses `len(column)` instead of `length(column)`
+- `describe table_name;` is convenient for planning, but exact describe syntax varies by database and client tool
+- if the target database does not support `describe`, DBAs may need to replace it with an equivalent catalog query or client-specific command
 
 Phase 2 also adds cross-file correlation:
 

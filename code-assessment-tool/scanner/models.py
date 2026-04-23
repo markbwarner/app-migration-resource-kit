@@ -32,6 +32,8 @@ class ComplexityAssessment:
 @dataclass
 class OwnershipAssessment:
     likely_change_owner: str
+    likely_change_target: bool
+    recommended_change_action: str
     ownership_confidence: float
     role_in_flow: str
     frontend_reference_only: bool
