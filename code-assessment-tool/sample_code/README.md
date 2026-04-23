@@ -20,6 +20,7 @@ This folder contains synthetic sample applications to exercise the scanner.
 - DTO/supporting-model samples that should be labeled `supporting_model`
 - React and Node.js proxy samples with routes that correlate to likely backend owners
 - Additional route-aligned React, Node.js, and .NET claim-review samples for easier endpoint correlation demos
+- JPA/ORM-style repository sample that should land as `review_data_access_change`
 
 ## Suggested scan
 
@@ -38,3 +39,4 @@ python app.py E:\codex\work\migration\sample_code --json-out E:\codex\work\migra
 - `claims-proxy.js` should look like `frontend_reference_only` while `claims-service.js` looks like the more likely backend/data owner
 - `claims-api-proxy.js` and `ClaimReviewScreen.tsx` should correlate more directly to `/api/claims/...` back-end owners
 - `.NET ClaimReviewController.cs` should look like an API owner, while `ClaimReviewService.cs` should look like the stronger data-access/JDBC-style owner
+- `CustomerDataStore.java` should look like a likely `data_access_owner` and drive `review_data_access_change`
