@@ -34,6 +34,7 @@ CSHARP_PROPERTY_RE = re.compile(
 TS_FIELD_RE = re.compile(r'^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*[^=;]+[;,]?\s*$', re.MULTILINE)
 SQL_COLUMN_RE = re.compile(r'\b([a-z][a-z0-9_]{2,})\b')
 SQL_TABLE_RE = re.compile(r'\b(?:from|join|update|insert\s+into)\s+([a-zA-Z_][a-zA-Z0-9_.$]*)', re.IGNORECASE)
+SQL_VERB_RE = re.compile(r'\b(select|insert|update|delete|merge|upsert)\b', re.IGNORECASE)
 CLASS_RE = re.compile(r'\b(?:public\s+)?(?:final\s+)?class\s+\w+')
 METHOD_RE = re.compile(
     r'\b(?:public|private|protected|internal)\s+[A-Za-z0-9_<>,.?[\]]+\s+\w+\s*\([^)]*\)\s*\{'
@@ -126,6 +127,24 @@ def extract_sensitive_table_map(content: str, pii_matches: Sequence[PiiMatch]) -
     ]
     tables = _dedupe_preserve_order(table for table in tables if table)
     return {table: list(columns) for table in tables}
+
+
+def extract_sql_verbs(content: str) -> List[str]:
+    verbs = [match.lower() for match in SQL_VERB_RE.findall(content)]
+    return _dedupe_preserve_order(verbs)
+
+
+def derive_sql_data_action(sql_verbs: Sequence[str]) -> str:
+    lowered = {verb.lower() for verb in sql_verbs}
+    has_read = "select" in lowered
+    has_write = any(verb in lowered for verb in ("insert", "update", "delete", "merge", "upsert"))
+    if has_read and has_write:
+        return "mixed"
+    if has_write:
+        return "protect_write"
+    if has_read:
+        return "reveal_read"
+    return ""
 
 
 def assess_ownership(

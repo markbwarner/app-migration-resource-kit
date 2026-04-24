@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Application Protection Decision Matrix</title>
+  <style>
+    :root {
+      --ink: #132238;
+      --muted: #5a6877;
+      --brand: #005bbb;
+      --surface: #f7faff;
+      --line: #d9e1ec;
+      --good: #eaf8f3;
+      --maybe: #fff7e7;
+      --page-width: 11in;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #e2eaf4;
+      color: var(--ink);
+    }
+
+    .page {
+      width: var(--page-width);
+      min-height: 8.5in;
+      margin: 0 auto 18px;
+      background: white;
+      padding: 0.65in;
+      box-shadow: 0 8px 30px rgba(17, 32, 56, 0.12);
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #003f82;
+      background: rgba(0, 91, 187, 0.1);
+      margin-bottom: 16px;
+    }
+
+    h1, h2 { margin: 0; line-height: 1.1; }
+    h1 { font-size: 28px; margin-bottom: 14px; }
+    h2 { font-size: 18px; margin: 22px 0 10px; }
+
+    p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.3px;
+      margin-top: 12px;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px 9px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--surface);
+      color: #214060;
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .good { background: var(--good); }
+    .maybe { background: var(--maybe); }
+
+    .summary {
+      margin-top: 18px;
+      padding: 16px 18px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #f8fbff;
+    }
+  </style>
+</head>
+<body>
+  <section class="page">
+    <div class="eyebrow">One-Page Matrix</div>
+    <h1>Application Protection Decision Matrix</h1>
+    <p>
+      Use this matrix to explain where protect and reveal APIs are usually best implemented, and how to interpret scanner output when deciding whether the UI or the back end is the better control point.
+    </p>
+
+    <h2>Architecture Decision Matrix</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Scenario</th>
+          <th>Typical Architecture</th>
+          <th>Best Default Integration Point</th>
+          <th>Why</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="good">
+          <td>Customer-facing multi-tier web app</td>
+          <td>React, Angular, or Node.js UI calling shared APIs</td>
+          <td>Shared back-end service endpoint</td>
+          <td>Centralized enforcement, less duplication, better security boundary</td>
+        </tr>
+        <tr class="good">
+          <td>Internal multi-tier app</td>
+          <td>UI plus reusable service layer</td>
+          <td>Shared back-end service endpoint</td>
+          <td>Same control and reuse advantages still apply</td>
+        </tr>
+        <tr class="maybe">
+          <td>Internal app acting as real integration client</td>
+          <td>UI directly invokes enterprise services and owns workflow</td>
+          <td>Client or UI may be valid</td>
+          <td>The client may already be the effective integration layer</td>
+        </tr>
+        <tr class="good">
+          <td>Back-end batch or service app</td>
+          <td>Java, .NET, Python, Go, or Node.js service with no UI</td>
+          <td>Back-end app itself</td>
+          <td>It already performs the real data movement and transformation</td>
+        </tr>
+        <tr class="good">
+          <td>Kafka producer or consumer flow</td>
+          <td>Service publishes or consumes sensitive events</td>
+          <td>Producer or consumer service</td>
+          <td>Protection should happen where the event is created, transformed, or revealed</td>
+        </tr>
+        <tr class="good">
+          <td>Database-heavy service</td>
+          <td>Service uses JDBC or SQL to persist sensitive data</td>
+          <td>Data-access layer or JDBC approach</td>
+          <td>May be a strong JDBC-driver candidate with lower code impact</td>
+        </tr>
+        <tr class="good">
+          <td>Shared enterprise API used by many channels</td>
+          <td>Web, mobile, internal tools call the same API</td>
+          <td>Shared API or service layer</td>
+          <td>Highest reuse and best governance point</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Criteria Matrix</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Criteria</th>
+          <th>Favors Back-End Implementation</th>
+          <th>Favors UI or Client Implementation</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Multiple UIs use the same service</td>
+          <td>Yes</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td>Shared service endpoints already exist</td>
+          <td>Yes</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td>Business logic lives in the service layer</td>
+          <td>Yes</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td>Database, Kafka, file, or MQ access happens in the back end</td>
+          <td>Yes</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td>Need centralized audit and policy enforcement</td>
+          <td>Yes</td>
+          <td>Sometimes</td>
+        </tr>
+        <tr>
+          <td>UI mostly collects and displays data</td>
+          <td>Yes</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td>Client already acts as the integration layer</td>
+          <td>Sometimes</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>No reusable middle tier exists</td>
+          <td>No</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>Need one implementation reused across channels</td>
+          <td>Yes</td>
+          <td>No</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="summary">
+      In most enterprise multi-tier applications, the shared back-end service or integration layer is usually the best default implementation point. The scanner’s `frontend_to_backend_correlations`, `likely_change_target`, and `recommended_change_action` fields help show when front-end references point to a smaller and more realistic set of back-end owners.
+    </div>
+  </section>
+</body>
+</html>

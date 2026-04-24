@@ -747,6 +747,8 @@ The CSV includes fields such as:
 - `role_in_flow`
 - `code_change_candidate_count`
 - `jdbc_candidate_count`
+- `sql_verbs`
+- `sql_data_action`
 - `complexity_rating`
 - `complexity_score`
 - `jdbc_tables`
@@ -757,6 +759,16 @@ This is usually the easiest format to filter in Excel for:
 - `review_crdp_rest_change`
 - `review_jdbc_substitution`
 - `review_data_access_change`
+
+The SQL-related fields help distinguish likely write-oriented protection paths from read-oriented reveal paths:
+
+- `sql_verbs`
+  - raw detected verbs such as `select`, `insert`, `update`, `delete`, `merge`, or `upsert`
+- `sql_data_action`
+  - derived hint:
+    - `protect_write`
+    - `reveal_read`
+    - `mixed`
 
 ### Split outputs for Excel, Power Query, and BI tools
 
@@ -838,6 +850,7 @@ The `jdbc_tables` and `sensitive_columns` fields make the likely-change-target e
 For DBA planning, the most useful rows are usually:
 
 - `recommended_change_action=review_jdbc_substitution`
+- rows with non-empty `sql_verbs`
 - rows with non-empty `jdbc_tables`
 - rows with non-empty `sensitive_columns`
 
@@ -851,6 +864,8 @@ Example DBA-friendly columns from `likely-change-targets.csv`:
 
 - `path`
 - `recommended_change_action`
+- `sql_verbs`
+- `sql_data_action`
 - `jdbc_tables`
 - `sensitive_columns`
 - `sensitive_tables`
