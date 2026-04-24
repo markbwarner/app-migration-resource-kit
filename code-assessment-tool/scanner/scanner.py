@@ -8,7 +8,16 @@ from .classifiers import analyze_hint_breakdowns, classify_file, count_integrati
 from .config import DEFAULT_EXCLUDES, CustomKeywordRule, CustomRegexRule, is_source_file
 from .detectors import build_presidio_analyzer, detect_custom_regex_matches, detect_keyword_matches, detect_presidio_matches
 from .models import ComplexityAssessment, FileReport, PiiMatch, ScanReport
-from .ownership import assess_ownership, correlate_ownership, extract_endpoints, extract_payload_fields, extract_sensitive_table_map, extract_system_of_record_paths
+from .ownership import (
+    assess_ownership,
+    correlate_ownership,
+    derive_sql_data_action,
+    extract_endpoints,
+    extract_payload_fields,
+    extract_sensitive_table_map,
+    extract_sql_verbs,
+    extract_system_of_record_paths,
+)
 
 GENERATED_REPORT_FILENAMES = {
     "pii-impact-report.json",
@@ -131,6 +140,8 @@ def _scan_file(
     pii_matches = _dedupe_and_sort(pii_matches)
     category_counts = Counter(match.category for match in pii_matches)
     system_of_record_paths = extract_system_of_record_paths(content, pii_matches)
+    sql_verbs = extract_sql_verbs(content)
+    sql_data_action = derive_sql_data_action(sql_verbs)
     sensitive_tables = extract_sensitive_table_map(content, pii_matches)
     jdbc_candidate_count, code_change_candidate_count, notes = _estimate_migration_paths(
         classification.layer,
@@ -185,6 +196,8 @@ def _scan_file(
         service_call_hint_breakdown=service_call_hint_breakdown,
         backend_hint_breakdown=backend_hint_breakdown,
         integration_hint_breakdown=integration_hint_breakdown,
+        sql_verbs=sql_verbs,
+        sql_data_action=sql_data_action,
         sensitive_tables=sensitive_tables,
         ownership=ownership,
         complexity=complexity,

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Application Protection Decision Guide</title>
+  <style>
+    :root {
+      --ink: #132238;
+      --muted: #59687a;
+      --brand: #005bbb;
+      --accent: #0f8b8d;
+      --line: #d9e1ec;
+      --surface: #f7faff;
+      --page-width: 8.5in;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--ink);
+      background: #e2eaf4;
+    }
+
+    .page {
+      width: var(--page-width);
+      min-height: 11in;
+      margin: 0 auto 18px;
+      background: white;
+      padding: 0.72in;
+      box-shadow: 0 8px 30px rgba(17, 32, 56, 0.12);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero {
+      background:
+        radial-gradient(circle at top right, rgba(15, 139, 141, 0.16), transparent 28%),
+        radial-gradient(circle at left 20% top 10%, rgba(0, 91, 187, 0.13), transparent 24%),
+        linear-gradient(135deg, #f8fbff 0%, #edf4fb 100%);
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #003f82;
+      background: rgba(0, 91, 187, 0.1);
+      margin-bottom: 18px;
+    }
+
+    h1, h2, h3 { margin: 0; line-height: 1.1; }
+    h1 { font-size: 30px; margin-bottom: 14px; max-width: 6.5in; }
+    h2 { font-size: 22px; margin-bottom: 14px; }
+    h3 { font-size: 15px; margin-bottom: 8px; }
+
+    p {
+      margin: 0 0 12px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+
+    .lede {
+      font-size: 15px;
+      color: #314157;
+      max-width: 6.7in;
+      margin-bottom: 20px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .card, .panel, .callout {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: white;
+    }
+
+    .card, .panel {
+      padding: 18px;
+    }
+
+    .card strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      background: #effbfb;
+      border-left: 5px solid var(--accent);
+      border-radius: 0 16px 16px 0;
+      margin-top: 18px;
+    }
+
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+
+    li { margin-bottom: 7px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 12.4px;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px 9px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--surface);
+      color: #214060;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .footer {
+      position: absolute;
+      left: 0.72in;
+      right: 0.72in;
+      bottom: 0.48in;
+      display: flex;
+      justify-content: space-between;
+      font-size: 10.5px;
+      color: #71839a;
+    }
+  </style>
+</head>
+<body>
+  <section class="page hero">
+    <div class="eyebrow">Customer Guidance</div>
+    <h1>Where Should Application Protection Be Implemented?</h1>
+    <p class="lede">
+      In most enterprise multi-tier applications, the best default place to implement protect and reveal APIs is
+      usually the shared back-end service layer, not the UI layer.
+    </p>
+
+    <div class="card-grid">
+      <div class="card">
+        <strong>Why Back End Usually Wins</strong>
+        <p>Back-end services typically own validation, business rules, transformation logic, service endpoints, and access to corporate assets such as databases, Kafka, files, and downstream systems.</p>
+      </div>
+      <div class="card">
+        <strong>Why UI Still Matters</strong>
+        <p>UI and client applications still matter as context because they collect, display, and sometimes directly submit sensitive fields, but they are not always the best long-term control point.</p>
+      </div>
+      <div class="card">
+        <strong>Why The Scanner Helps</strong>
+        <p>The scanner helps separate front-end references from likely back-end or JDBC change owners so scope discussions are based on code evidence instead of assumptions.</p>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top: 18px;">
+      <div class="panel">
+        <h2>Default Recommendation</h2>
+        <p>
+          For customer-facing multi-tier applications, protect and reveal APIs are usually best implemented in shared back-end
+          service endpoints because that layer can enforce controls once and serve multiple channels consistently.
+        </p>
+        <ul>
+          <li>Less duplicated logic across multiple UIs</li>
+          <li>Better alignment with firewall and network boundaries</li>
+          <li>Easier governance, auditing, and policy consistency</li>
+          <li>Cleaner maintenance when security behavior changes</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h2>Important Exception</h2>
+        <p>
+          Some internal applications or thick-client style apps may already act as the real integration layer. In those cases,
+          the client or UI-tier application may still be a valid place to integrate protect and reveal APIs.
+        </p>
+        <ul>
+          <li>No meaningful shared middle tier exists</li>
+          <li>The client directly invokes enterprise systems</li>
+          <li>The client owns workflow or data handling decisions</li>
+          <li>Protection must happen before data leaves the client boundary</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout">
+      The key question is not just where the field appears. The better question is which application layer truly owns the data-handling decision.
+    </div>
+
+    <div class="footer">
+      <span>Application Protection Decision Guide</span>
+      <span>Page 1</span>
+    </div>
+  </section>
+
+  <section class="page">
+    <h2>Scanner Output</h2>
+
+    <div class="grid-2">
+      <div class="panel">
+        <h3>What `frontend_to_backend_correlations` Adds</h3>
+        <p>
+          This section helps customers understand that front-end references do not automatically imply front-end implementation scope.
+          It highlights likely back-end files that appear related through routes, payload fields, and naming overlap.
+        </p>
+        <ul>
+          <li>Reduces false scope</li>
+          <li>Shows likely ownership chains from UI to service layer</li>
+          <li>Supports conversations about where CRDP work is most likely to belong</li>
+        </ul>
+        <p>
+          It is heuristic guidance, not a full runtime dependency graph.
+        </p>
+      </div>
+      <div class="panel">
+        <h3>Most Useful Report Fields</h3>
+        <ul>
+          <li><code>likely_change_target</code></li>
+          <li><code>recommended_change_action</code></li>
+          <li><code>likely_change_owner</code></li>
+          <li><code>ownership_confidence</code></li>
+          <li><code>backend_owner_confidence</code></li>
+          <li><code>endpoint_correlation_score</code></li>
+          <li><code>code_change_candidate_count</code></li>
+          <li><code>jdbc_candidate_count</code></li>
+          <li><code>complexity_rating</code> and <code>complexity_score</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top: 18px;">
+      <div class="panel">
+        <h3>Best First Filter</h3>
+        <p>
+          The easiest review set is usually the files where:
+        </p>
+        <ul>
+          <li><code>likely_change_target = true</code></li>
+          <li><code>recommended_change_action = review_crdp_rest_change</code></li>
+          <li><code>recommended_change_action = review_jdbc_substitution</code></li>
+          <li><code>recommended_change_action = review_data_access_change</code></li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Best DBA Handoff Fields</h3>
+        <ul>
+          <li><code>jdbc_tables</code></li>
+          <li><code>sensitive_columns</code></li>
+          <li><code>sensitive_tables</code></li>
+          <li>generated DBA planning SQL file</li>
+        </ul>
+        <p>
+          These outputs help DBAs review table structure, current max stored lengths, and possible width impacts before rollout.
+        </p>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Question</th>
+          <th>Best Report Indicator</th>
+          <th>How To Use It</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>What code most likely needs review?</td>
+          <td><code>likely_change_target</code></td>
+          <td>Filter for <code>true</code> and sort by confidence and complexity.</td>
+        </tr>
+        <tr>
+          <td>What kind of change is most likely?</td>
+          <td><code>recommended_change_action</code></td>
+          <td>Group files into CRDP REST review, data-access review, or JDBC substitution review.</td>
+        </tr>
+        <tr>
+          <td>Is a UI file just context?</td>
+          <td><code>frontend_to_backend_correlations</code></td>
+          <td>Use it to identify likely shared back-end owners behind UI references.</td>
+        </tr>
+        <tr>
+          <td>Which tables should DBAs inspect?</td>
+          <td><code>jdbc_tables</code>, <code>sensitive_columns</code></td>
+          <td>Use the CSV and DBA SQL file as a handoff package.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="footer">
+      <span>Application Protection Decision Guide</span>
+      <span>Page 2</span>
+    </div>
+  </section>
+
+  <section class="page">
+    <h2>Summary</h2>
+
+    <div class="panel">
+      <p>
+        A front end may show five sensitive fields, but that does not automatically mean five front-end code changes are required.
+        In many cases, those fields flow through shared back-end web services that already own validation, orchestration, and persistence.
+        That shared back-end layer is often the best place to implement protection and reveal APIs because it reduces duplication,
+        centralizes control, and protects multiple channels at once.
+      </p>
+    </div>
+
+    <div class="grid-2" style="margin-top: 18px;">
+      <div class="panel">
+        <h3>Good Fit For Back-End Integration</h3>
+        <ul>
+          <li>Customer-facing multi-tier applications</li>
+          <li>Shared service endpoints already exist</li>
+          <li>Business rules live in the service layer</li>
+          <li>Corporate assets are accessed from the back end</li>
+          <li>One implementation should serve multiple channels</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Good Fit For Client or UI Integration</h3>
+        <ul>
+          <li>No meaningful shared middle tier exists</li>
+          <li>Internal app already acts as the integration client</li>
+          <li>Local workflow owns the data-handling decision</li>
+          <li>Protection must occur before data leaves the client boundary</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout">
+      The scanner helps customers move from “where is sensitive data visible?” to “which layer most likely needs to change?”
+    </div>
+
+    <div class="footer">
+      <span>Application Protection Decision Guide</span>
+      <span>Page 3</span>
+    </div>
+  </section>
+</body>
+</html>

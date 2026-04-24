@@ -65,6 +65,8 @@ class FileReport:
     service_call_hint_breakdown: Dict[str, int] = field(default_factory=dict)
     backend_hint_breakdown: Dict[str, int] = field(default_factory=dict)
     integration_hint_breakdown: Dict[str, int] = field(default_factory=dict)
+    sql_verbs: List[str] = field(default_factory=list)
+    sql_data_action: str = ""
     sensitive_tables: Dict[str, List[str]] = field(default_factory=dict)
     ownership: Optional[OwnershipAssessment] = None
     complexity: Optional[ComplexityAssessment] = None
